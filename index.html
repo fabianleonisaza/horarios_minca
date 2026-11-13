@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Horarios – Instituto Comunitario Minca</title>
+<link rel="stylesheet" href="styles.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+</head>
+<body>
+
+<header class="top-bar">
+  <div class="marca">
+    <span class="marca-titulo">Instituto Comunitario Minca</span>
+    <span class="marca-sub">Horario general – Básica secundaria y media – 2026</span>
+  </div>
+  <nav class="nav-bar">
+    <button class="nav-btn activo" data-vista="vista-consolidado" onclick="mostrarVista('vista-consolidado')">Consolidado</button>
+    <button class="nav-btn" data-vista="vista-sede-A" onclick="mostrarVista('vista-sede-A')">Sede A</button>
+    <button class="nav-btn" data-vista="vista-sede-B" onclick="mostrarVista('vista-sede-B')">Sede B</button>
+    <button class="nav-btn" data-vista="vista-sede-C" onclick="mostrarVista('vista-sede-C')">Sede C</button>
+    <button class="nav-btn" data-vista="vista-edicion" onclick="mostrarVista('vista-edicion')">Edición</button>
+  </nav>
+  <div class="sesion-bar">
+    <button id="btn-horarios-guardados" class="nav-btn" onclick="abrirGuardarCargar()" style="display:none;">💾 Horarios guardados</button>
+    <span id="sesion-info"></span>
+    <button id="btn-sesion" class="nav-btn" onclick="alClicBotonSesion()">🔒 Iniciar sesión</button>
+  </div>
+</header>
+
+<main>
+
+  <section id="vista-consolidado" class="vista activa">
+    <h2>Consolidado – Sedes A, B y C</h2>
+    <div id="cont-consolidado"></div>
+  </section>
+
+  <section id="vista-sede-A" class="vista">
+    <h2>Sede A</h2>
+    <div id="cont-sede-A"></div>
+  </section>
+
+  <section id="vista-sede-B" class="vista">
+    <h2>Sede B</h2>
+    <div id="cont-sede-B"></div>
+  </section>
+
+  <section id="vista-sede-C" class="vista">
+    <h2>Sede C</h2>
+    <div id="cont-sede-C"></div>
+  </section>
+
+  <section id="vista-edicion" class="vista">
+    <h2>Edición de horario</h2>
+    <div class="edicion-layout">
+      <aside class="panel-izquierdo">
+        <h4>Sede</h4>
+        <button class="sede-btn-edicion" data-sede="A" onclick="cambiarSedeEdicion('A')">Sede A</button>
+        <button class="sede-btn-edicion" data-sede="B" onclick="cambiarSedeEdicion('B')">Sede B</button>
+        <button class="sede-btn-edicion" data-sede="C" onclick="cambiarSedeEdicion('C')">Sede C</button>
+        <h4>Día</h4>
+        <button class="dia-btn-edicion" data-dia="Lunes" onclick="cambiarDiaEdicion('Lunes')">Lunes</button>
+        <button class="dia-btn-edicion" data-dia="Martes" onclick="cambiarDiaEdicion('Martes')">Martes</button>
+        <button class="dia-btn-edicion" data-dia="Miercoles" onclick="cambiarDiaEdicion('Miercoles')">Miércoles</button>
+        <button class="dia-btn-edicion" data-dia="Jueves" onclick="cambiarDiaEdicion('Jueves')">Jueves</button>
+        <button class="dia-btn-edicion" data-dia="Viernes" onclick="cambiarDiaEdicion('Viernes')">Viernes</button>
+        <div id="panel-disponibles" class="panel-disponibles"></div>
+      </aside>
+      <div class="panel-derecho">
+        <div class="barra-edicion">
+          <button class="btn-export" onclick="abrirExport('edicion')">⬇ Exportar</button>
+          <button id="btn-deshacer-ajuste" class="btn-export btn-secundario" style="display:none;" onclick="deshacerAjuste()">↩ Deshacer ajuste</button>
+          <div class="config-texto-vacio">
+            <label for="input-texto-vacio">Texto espacios vacíos (exportación):</label>
+            <input type="text" id="input-texto-vacio" value="PLAN DE AULA" placeholder="Ej: PLAN DE AULA" />
+          </div>
+        </div>
+        <div class="edicion-cuerpo">
+          <div class="col-docentes">
+            <div id="lista-docentes-dia" class="lista-docentes-scroll"></div>
+            <button type="button" class="btn-agregar-docente" onclick="abrirModalNuevoDocente()" title="Agregar un docente o profesional solo para este día" aria-label="Agregar docente o profesional">+</button>
+          </div>
+          <div id="grilla-edicion"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div id="modal-export" class="modal">
+  <div class="modal-caja">
+    <h3>Exportar horario</h3>
+    <p>Elige el formato de descarga.</p>
+    <div id="campo-titulo-export" style="display:none; text-align:left; margin-bottom:10px;">
+      <label style="font-size:0.8rem; color:#555;">Título del documento (editable):</label>
+      <textarea id="input-titulo-export" rows="2" style="width:100%; margin-top:4px;"></textarea>
+    </div>
+    <div class="modal-botones">
+      <button onclick="exportarPDF()">📄 Descargar PDF</button>
+      <button onclick="exportarDOCX()">📝 Descargar Word (.docx)</button>
+      <button id="btn-export-excel" onclick="exportarConsolidadoExcel(); cerrarExport();" style="display:none;">📊 Descargar Excel (.xlsx)</button>
+    </div>
+    <button class="cerrar" onclick="cerrarExport()">Cancelar</button>
+  </div>
+</div>
+
+<div id="modal-docente" class="modal">
+  <div class="modal-caja modal-grande">
+    <div id="modal-docente-contenido"></div>
+    <button class="cerrar" onclick="cerrarModalDocente()">Cerrar</button>
+  </div>
+</div>
+
+<div id="modal-oficial" class="modal">
+  <div class="modal-caja modal-grande">
+    <div id="modal-oficial-contenido"></div>
+    <button class="cerrar" onclick="cerrarModalOficial()">Cerrar</button>
+  </div>
+</div>
+
+<div id="modal-login" class="modal">
+  <div class="modal-caja">
+    <h3>Iniciar sesión</h3>
+    <p class="ayuda" style="margin-top:-6px;">Solo el personal con credenciales puede hacer modificaciones.</p>
+    <div class="form-login">
+      <label>Correo
+        <input type="email" id="login-email" placeholder="nombre@colegio.edu.co" />
+      </label>
+      <label>Contraseña
+        <input type="password" id="login-password" />
+      </label>
+    </div>
+    <p id="login-error" class="login-error"></p>
+    <div class="modal-botones">
+      <button onclick="intentarLogin()">Ingresar</button>
+    </div>
+    <button class="cerrar" onclick="cerrarModalLogin()">Cancelar</button>
+  </div>
+</div>
+
+<div id="modal-guardar-cargar" class="modal">
+  <div class="modal-caja modal-grande">
+    <h3>Horarios guardados</h3>
+    <div class="form-guardar">
+      <input type="text" id="input-nombre-guardar" placeholder="Ej: Horario 2026, Borrador" />
+      <button onclick="guardarHorarioBD()">💾 Guardar horario actual</button>
+    </div>
+    <p id="guardar-mensaje" class="ayuda"></p>
+    <h4>Cargar un horario guardado</h4>
+    <div id="lista-horarios-guardados">Cargando…</div>
+    <button class="cerrar" onclick="cerrarGuardarCargar()">Cerrar</button>
+  </div>
+</div>
+
+<div id="modal-nuevo-docente" class="modal">
+  <div class="modal-caja">
+    <h3>Agregar docente o profesional</h3>
+    <p class="ayuda" id="nuevo-docente-contexto" style="margin-top:-6px;"></p>
+    <div class="form-login">
+      <label>Nombre
+        <input type="text" id="input-nuevo-docente" maxlength="80" placeholder="Ej: JUAN PÉREZ" onkeydown="if(event.key==='Enter'){confirmarNuevoDocente()}" />
+      </label>
+    </div>
+    <p id="nuevo-docente-error" class="login-error"></p>
+    <div class="modal-botones">
+      <button onclick="confirmarNuevoDocente()">Agregar</button>
+    </div>
+    <button class="cerrar" onclick="cerrarModalNuevoDocente()">Cancelar</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="schedule.js"></script>
+</body>
+</html>
