@@ -1,3 +1,9 @@
+/* ============================================================
+   HORARIOS – Instituto Comunitario Minca
+   Modelo de datos + lógica de la aplicación
+   Datos importados y verificados desde horarios.xlsx (tabla corregida)
+   ============================================================ */
+
 const DIAS = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes"];
 const HORAS = [1, 2, 3, 4, 5, 6];
 const HORA_RANGOS = {
@@ -12,18 +18,24 @@ const HORA_RANGOS = {
 const SEDES = ["A", "B", "C"];
 const SEDE_LABEL = { A: "Sede A", B: "Sede B", C: "Sede C" };
 
-const LOGO_B64 =
-  "iVBORw0KGgoAAAANSUhEUgAAAOwAAACuCAYAAAA1Q+FzAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAIdUAACHVAQSctJ0AAHZ+SURBVHhe7V1lWFVZF6ZUVBRQ7O7u7jGwu7tb6bDKSWGGEAVAVQAKrP67d3e9112v893v8649l5Oq2jOK5X28+85zfzyzS6Wj3t3lvf7P//0PRhhhROyAkbBGGBGLYCSsEUbEIhgJa4QRsQhGwhphRCyCkbBGGBGLYCSsEUbEIhgJa4QRsQhGwhphRCyCkbBxGH/99Rfev3+P16/f4s2bt+p/2FB333/r7m/E7w8jYeMghYKv377FnTp3cOkS5Ldv35r48+fPuHr1Kq5evYrXr1/j8uXLePXqlfJ59eoV5bN69Wry/nfxK1euoEePHjh79ixevnyJ58+fo6CgAO/fv0er1arA8/fv38OHD29ev36N50cPoaCgAKdOnYI//79///4dvHnzBvv27UP89OmjQv68hL9+/Qo//v6O8+eP4c+fP7h9+zbu378PFy9exLdv35r//fsPePEiFhQUsOTBwQE4cOAAbkL+/v78/eM8L126hJcvX8anT5+gq6uLB4cO4vXrl//ffycmHh4e4scHwP7/A4BwAIA/A8C+ffv+PwA=";
+/* ------------------------------------------------------------
+   DOCENTES – datos reales importados de horarios.xlsx
+   nombre, dir (grupo del que es director, o "" si no aplica),
+   horario: por día, arreglo de 6 celdas con el código de grupo
+   ("9-3B"), "A.P." (Atención a Padres) o null (celda vacía).
+   Los docentes de contrajornada traen además horarioTarde con
+   la misma estructura (jornada de la tarde, Media Técnica).
+   ------------------------------------------------------------ */
 
 const DOCENTES_RAW = [
-  { nombre: "CARMEN ELIZABETH ARCINIÉGAS MORA", dir: "9-3B", horario: { Lunes: ["A.P.", "A.P.", "9-3B", "9-2B", "8-1B", "9-1B"], Martes: ["9-1B", "9-1B", "A.P.", "8-1B", "9-3B", "A.P."], Miercoles: ["9-3B", "9-3B", "9-2B", "9-2B", "A.P.", "8-1B"], Jueves: ["A.P.", "9-2B", "9-1B", "9-1B", "A.P.", "8-1B"], Viernes: ["9-3B", "9-3B", "8-1B", "8-1B", "A.P.", "9-2B"] } },
+  { nombre: "ARCINIÉGAS MORA CARMEN ELIZABETH", dir: "9-3B", horario: { Lunes: ["A.P.", "A.P.", "9-3B", "9-2B", "8-1B", "9-1B"], Martes: ["9-1B", "9-1B", "A.P.", "8-1B", "9-3B", "A.P."], Miercoles: ["9-3B", "9-3B", "9-2B", "9-2B", "A.P.", "8-1B"], Jueves: ["A.P.", "9-2B", "9-1B", "9-1B", "A.P.", "8-1B"], Viernes: ["9-3B", "9-3B", "8-1B", "8-1B", "A.P.", "9-2B"] } },
   { nombre: "CASTELLANOS APARICIO RITA JULIA", dir: "8-1B", horario: { Lunes: ["8-1B", "8-1B", "A.P.", "9-3B", "7-1B", "A.P."], Martes: ["A.P.", "9-2B", "9-1B", "7-1B", "6-1B", "9-3B"], Miercoles: ["7-1B", "8-1B", "A.P.", "9-1B", "7-1B", "6-1B"], Jueves: ["9-2B", "A.P.", "6-1B", "A.P.", "9-3B", "A.P."], Viernes: ["A.P.", "6-1B", "9-1B", "9-2B", "9-3B", "8-1B"] } },
   { nombre: "CASTRO CONTRERAS MARÍA BELENICE", dir: "", horario: { Lunes: ["9-3B", "A.P.", "10-3A", "11-1A", "A.P.", "A.P."], Martes: ["A.P.", "11-2A", "10-2A", "11-1A", "10-3A", "10-1A"], Miercoles: ["A.P.", "10-3A", "A.P.", "10-1A", "10-2A", "11-2A"], Jueves: ["9-3B", "9-3B", "A.P.", "11-2A", "11-1A", "10-1A"], Viernes: ["10-2A", "10-2A", "11-1A", "10-3A", "11-2A", "A.P."] } },
   { nombre: "COGOLLO TORRES JOANNE", dir: "9-2B", horario: { Lunes: ["9-2B", "9-1B", "A.P.", "A.P.", "6-1B", "7-1B"], Martes: ["9-2B", "A.P.", "9-3B", "A.P.", "8-1B", "A.P."], Miercoles: ["8-1B", "9-2B", "9-1B", "A.P.", "9-3B", "9-3B"], Jueves: ["6-1B", "8-1B", "7-1B", "9-2B", "A.P.", "9-1B"], Viernes: ["8-1B", "A.P.", "6-1B", "9-1B", "7-1B", "9-3B"] } },
-  { nombre: "CORZO VELÁSQUEZ NÉSTOR ESTEBAN", dir: "6-2C", horario: { Lunes: ["8-1C", "8-2C", "A.P.", "A.P.", "6-1C", "7-2C"], Martes: ["8-1C", "7-1C", "7-1C", "6-2C", "8-2C", "A.P."], Miercoles: ["6-1C", "A.P.", "8-2C", "6-2C", "7-2C", "7-1C"], Jueves: ["7-2C", "A.P.", "8-1C", "A.P.", "8-2C", "7-1C"], Viernes: ["6-1C", "6-2C", "7-2C", "A.P.", "A.P.", "8-1C"] } },
+  { nombre: "SERRANO ANGARITA ANDREA PAOLA", dir: "6-2C", horario: { Lunes: ["8-1C", "8-2C", "A.P.", "A.P.", "6-1C", "7-2C"], Martes: ["8-1C", "7-1C", "7-1C", "6-2C", "8-2C", "A.P."], Miercoles: ["6-1C", "A.P.", "8-2C", "6-2C", "7-2C", "7-1C"], Jueves: ["7-2C", "A.P.", "8-1C", "A.P.", "8-2C", "7-1C"], Viernes: ["6-1C", "6-2C", "7-2C", "A.P.", "A.P.", "8-1C"] } },
   { nombre: "CRUZ MEJIA MARTHA ESPERANZA", dir: "", horario: { Lunes: ["A.P.", "9-3B", "9-2B", "A.P.", "9-1B", "8-1B"], Martes: ["11-2A", "10-1A", "11-1A", "10-2A", "A.P.", "10-3A"], Miercoles: ["A.P.", "A.P.", "9-3B", "8-1B", "9-1B", "9-2B"], Jueves: ["11-2A", "10-3A", "10-2A", "11-1A", "10-1A", "A.P."], Viernes: ["8-1C", "8-1C", "A.P.", "8-2C", "8-2C", "A.P."] } },
   { nombre: "GALINDO NARANJO RICARDO", dir: "10-1A", horario: { Lunes: ["11-1A", "A.P.", "11-2A", "A.P.", "10-2A", "10-1A"], Martes: ["10-3A", "A.P.", "10-1A", "A.P.", "11-2A", "11-1A"], Miercoles: ["10-3A", "A.P.", "10-2A", "11-1A", "11-2A", "10-1A"], Jueves: ["11-1A", "A.P.", "11-2A", "10-3A", "A.P.", "10-2A"], Viernes: ["7-1C", "7-2C", "A.P.", "10-2A", "10-1A", "10-3A"] } },
-  { nombre: "AROCHA CARLOS ALBERTO", dir: "", horario: { Lunes: ["6-1C", "6-1C", "6-2C", "6-2C", "7-1C", "7-1C"], Martes: [null, null, null, null, null, null], Miercoles: [null, null, null, null, null, null], Jueves: [null, "6-2C", "6-1C", null, null, null], Viernes: [null, null, null, null, null, null] } },
+  { nombre: "AROCHA CARLOS ALBERTO", dir: "", horario: { Lunes: ["6-1C", "6-1C", "6-2C", "6-2C", "7-1C", "7-1C"], Martes: [null, null, null, null, null, null], Miercoles: [null, null, null, null, null, null], Jueves: [null, "6-2C", "6-1C", null, null, null], Viernes: [null, null, null, null, null, null] }, contrajornada: true, horarioTarde: { Lunes: [null, null, null, null, null, null], Martes: ["A.P.", "11-A", "11-A", "11-A", "11-A", "A.P."], Miercoles: ["A.P.", "10-A", "10-A", "10-A", "10-A", "A.P."], Jueves: ["A.P.", "11-A", "11-A", "11-A", "A.P.", null], Viernes: ["A.P.", "10-A", "10-A", "10-A", "A.P.", null] } },
   { nombre: "GELVES VÁSQUEZ JHONATHAN ISAAC", dir: "7-1C", horario: { Lunes: ["7-2C", "7-2C", "8-1C", "A.P.", "6-2C", "8-2C"], Martes: ["8-2C", "8-2C", "8-1C", "7-1C", "7-2C", "6-1C"], Miercoles: ["6-2C", "6-1C", "A.P.", "7-1C", "6-1C", "7-2C"], Jueves: ["6-1C", "A.P.", "8-2C", "7-1C", "A.P.", "8-1C"], Viernes: ["A.P.", "A.P.", "7-1C", "8-1C", "6-2C", "6-2C"] } },
   { nombre: "GÓMEZ GÓMEZ ISAÍAS", dir: "9-1B", horario: { Lunes: ["11-2A", "10-2A", "10-1A", "10-3A", "11-1A", "A.P."], Martes: ["8-1B", "A.P.", "9-2B", "9-3B", "A.P.", "9-1B"], Miercoles: ["10-2A", "11-2A", "11-1A", "10-3A", "10-1A", "A.P."], Jueves: ["7-1B", "9-1B", "A.P.", "A.P.", "9-2B", "6-1B"], Viernes: ["7-1B", "A.P.", "9-3B", "6-1B", "8-1B", "A.P."] } },
   { nombre: "GONZÁLEZ PÉREZ LYDA AMPARO", dir: "", horario: { Lunes: ["7-1B", "A.P.", "A.P.", "6-1B", "A.P.", "6-1B"], Martes: ["6-1C", "6-2C", "6-1C", "8-1C", "7-1C", "6-2C"], Miercoles: ["8-1C", "8-2C", "6-1C", "7-2C", "6-2C", "A.P."], Jueves: ["7-1C", "8-2C", "A.P.", "6-1C", "7-2C", "6-2C"], Viernes: ["A.P.", "A.P.", "A.P.", "7-1B", "6-1B", "6-1B"] } },
@@ -32,7 +44,7 @@ const DOCENTES_RAW = [
   { nombre: "HERNÁNDEZ MARTÍNENEZ MARTHA CECILIA", dir: "", horario: { Lunes: ["6-2C", "7-1C", "7-1C", "7-2C", "7-2C", "6-1C"], Martes: [null, null, null, null, null, null], Miercoles: [null, null, null, null, null, null], Jueves: [null, "6-1C", "6-2C", null, null, null], Viernes: [null, null, null, null, null, null] }, contrajornada: true, horarioTarde: { Lunes: [null, null, null, null, null, null], Martes: ["A.P.", "11-A", "11-A", "11-A", "11-A", "A.P."], Miercoles: ["A.P.", "10-A", "10-A", "10-A", "10-A", "A.P."], Jueves: ["A.P.", "11-A", "11-A", "11-A", "A.P.", null], Viernes: ["A.P.", "10-A", "10-A", "10-A", "A.P.", null] } },
   { nombre: "LEAL SANJUAN MAVELIA NOHEMI", dir: "8-2C", horario: { Lunes: ["A.P.", "A.P.", "7-2C", "8-2C", "8-2C", "8-1C"], Martes: ["A.P.", "7-2C", "7-2C", "8-2C", "8-1C", "7-1C"], Miercoles: ["7-2C", "7-1C", "8-1C", "8-1C", "A.P.", "A.P."], Jueves: ["8-2C", "A.P.", "7-1C", "8-1C", "8-1C", "A.P."], Viernes: ["7-2C", "8-2C", "8-2C", "A.P.", "7-1C", "7-1C"] } },
   { nombre: "LEÓN ISAZA FABIÁN ENRIQUE", dir: "", horario: { Lunes: ["A.P.", "11-2A", "10-2A", "A.P.", "10-1A", "11-1A"], Martes: ["9-3B", "A.P.", "7-1B", "9-2B", "9-1B", "8-1B"], Miercoles: ["8-2C", "A.P.", "A.P.", "10-2A", "11-1A", "10-3A"], Jueves: ["A.P.", "7-1B", "9-3B", "8-1B", "9-1B", "9-2B"], Viernes: ["10-1A", "10-3A", "11-2A", "A.P.", "A.P.", "8-2C"] } },
-  { nombre: "LOZANO GONZÁLEZ JOSÉ ERNESTO", dir: "11-2A", horario: { Lunes: ["10-2A", "10-1A", "A.P.", "11-2A", "A.P.", "10-3A"], Martes: ["10-2A", "11-1A", "11-2A", "A.P.", "10-1A", "A.P."], Miercoles: ["11-1A", "10-2A", "10-3A", "A.P.", "8-1C", "8-2C"], Jueves: ["A.P.", "10-1A", "10-3A", "A.P.", "11-2A", "11-1A"], Viernes: ["11-.2A", "11-1A", "10-3A", "10-1A", "A.P.", "10-2A"] } },
+  { nombre: "LOZANO GONZÁLEZ JOSÉ ERNESTO", dir: "11-2A", horario: { Lunes: ["10-2A", "10-1A", "A.P.", "11-2A", "A.P.", "10-3A"], Martes: ["10-2A", "11-1A", "11-2A", "A.P.", "10-1A", "A.P."], Miercoles: ["11-1A", "10-2A", "10-3A", "A.P.", "8-1C", "8-2C"], Jueves: ["A.P.", "10-1A", "10-3A", "A.P.", "11-2A", "11-1A"], Viernes: ["11-2A", "11-1A", "10-3A", "10-1A", "A.P.", "10-2A"] } },
   { nombre: "NAVARRO ARANA CRISTIÁN EDGARDO", dir: "6-1B", horario: { Lunes: ["10-1A", "A.P.", "9-1B", "8-1B", "A.P.", "9-2B"], Martes: ["A.P.", "6-1B", "6-1B", "A.P.", "7-1B", "6-1B"], Miercoles: ["A.P.", "6-1B", "8-1B", "6-1B", "6-1B", "7-1B"], Jueves: ["A.P.", "A.P.", "8-1B", "6-1B", "6-1B", "7-1B"], Viernes: ["6-1B", "9-2B", "9-2B", "A.P.", "9-1B", "9-1B"] } },
   { nombre: "MÁRQUEZ ORTIZ DIANA MARÍA", dir: "8-1C", horario: { Lunes: ["A.P.", "A.P.", "8-2C", "7-1C", "8-1C", "A.P."], Martes: ["7-1C", "6-1C", "8-2C", "7-2C", "A.P.", "8-1C"], Miercoles: ["7-1C", "8-1C", "6-2C", "6-1C", "A.P.", "6-2C"], Jueves: ["A.P.", "7-2C", "6-2C", "8-2C", "7-1C", "7-2C"], Viernes: ["6-2C", "A.P.", "6-1C", "7-2C", "6-1C", "A.P."] } },
   { nombre: "LUIS FELIPE MARÍN GUZMAN", dir: "7-1C", horario: { Lunes: ["A.P.", "9-2B", "6-1B", "9-1B", "9-3B", "A.P."], Martes: ["A.P.", "8-1B", "A.P.", "6-1B", "9-2B", "7-1B"], Miercoles: ["9-1B", "7-1B", "6-1B", "9-3B", "8-1B", "A.P."], Jueves: ["6-2C", "6-1B", "A.P.", "9-3B", "7-1B", "A.P."], Viernes: ["9-1B", "8-1B", "A.P.", "9-3B", "9-2B", "7-1B"] } },
@@ -40,8 +52,7 @@ const DOCENTES_RAW = [
   { nombre: "RAMÍREZ AMOROCHO BRAYÁN SEBASTIÁN", dir: "10-2A", horario: { Lunes: ["A.P.", "10-3A", "A.P.", "A.P.", "11-2A", "10-2A"], Martes: ["11-1A", "10-3A", "A.P.", "10-1A", "A.P.", "10-2A"], Miercoles: ["11-2A", "11-1A", "10-1A", "A.P.", "9-2B", "9-1B"], Jueves: ["10-1A", "11-2A", "11-1A", "10-2A", "A.P.", "10-3A"], Viernes: ["11-1A", "11-2A", "10-2A", "A.P.", "10-3A", "10-1A"] } },
   { nombre: "RUEDA DÍAZ HÉCTOR", dir: "10-3A", horario: { Lunes: ["10-3A", "11-1A", "A.P.", "10-1A", "A.P.", "A.P."], Martes: ["A.P.", "10-2A", "A.P.", "10-3A", "11-1A", "11-2A"], Miercoles: ["9-2B", "9-1B", "A.P.", "11-2A", "A.P.", "11-1A"], Jueves: ["10-2A", "10-2A", "10-1A", "A.P.", "10-3A", "11-2A"], Viernes: ["10-3A", "10-1A", "10-1A", "11-2A", "10-2A", "11-1A"] } },
   { nombre: "SANCHEZ BECERRA LUZBELIA", dir: "11-1A", horario: { Lunes: ["A.P.", "A.P.", "11-1A", "10-2A", "10-3A", "11-2A"], Martes: ["10-1A", "A.P.", "10-3A", "11-2A", "10-2A", "A.P."], Miercoles: ["10-1A", "10-1A", "11-2A", "A.P.", "10-3A", "10-2A"], Jueves: ["10-3A", "11-1A", "A.P.", "10-1A", "10-2A", "A.P."], Viernes: ["9-2B", "9-1B", "A.P.", "11-1A", "11-1A", "11-2A"] } },
-  { nombre: "ZAFRA CARRILLO MOISÉS", dir: "7-2C", horario: { Lunes: ["7-1C", "8-1C", "A.P.", "6-1C", "A.P.", "A.P."], Martes: ["7-2C", "8-1C", "A.P.", "A.P.", "6-2C", "8-2C"], Miercoles: ["A.P.", "6-2C", "7-2C", "8-2C", "7-1C", "6-1C"], Jueves: ["8-1C", "7-1C", "A.P.", "7-2C", "6-2C", "8-2C"], Viernes: ["8-2C", "7-1C", "8-1C", "6-1C", "7-2C", "A.P."] } },
-  { nombre: "GARCÍA SÁNCHEZ SANDRA LUCÍA", dir: "", horario: { Lunes: [null, null, null, null, null, null], Martes: [null, null, null, null, null, null], Miercoles: [null, null, null, null, null, null], Jueves: [null, null, null, null, null, null], Viernes: [null, null, null, null, null, null] }, contrajornada: true, horarioTarde: { Lunes: [null, null, null, null, null, null], Martes: ["A.P.", "11-A", "11-A", "11-A", "11-A", "A.P."], Miercoles: ["A.P.", "10-A", "10-A", "10-A", "10-A", "A.P."], Jueves: ["A.P.", "11-A", "11-A", "11-A", "A.P.", null], Viernes: ["A.P.", "10-A", "10-A", "10-A", "A.P.", null] } },
+  { nombre: "ZAFRA CARRILLO MOISÉS", dir: "7-2C", horario: { Lunes: ["7-1C", "8-1C", "A.P.", "6-1C", "A.P.", "A.P."], Martes: ["7-2C", "8-1C", "A.P.", "A.P.", "6-2C", "8-2C"], Miercoles: ["A.P.", "6-2C", "7-2C", "8-2C", "7-1C", "6-1C"], Jueves: ["8-1C", "7-1C", "A.P.", "7-2C", "6-2C", "8-2C"], Viernes: ["8-2C", "7-1C", "8-1C", "6-1C", "7-2C", "A.P."] } }
 ];
 const DOCENTES = DOCENTES_RAW;
 
@@ -51,6 +62,12 @@ function buscar(nombreParcial) {
   );
 }
 
+/* ------------------------------------------------------------
+   FORMATO OFICIAL – encabezado institucional y plantillas
+   usadas para exportar: GPS-F-05 consolidado / GPS-F-33 por docente.
+   ------------------------------------------------------------ */
+
+// "9-3B" -> "9-3 B"
 function codigoEspaciado(c) {
   if (!c || c === "A.P.") return c || "";
   return c.slice(0, -1) + " " + c.slice(-1);
@@ -61,7 +78,7 @@ function encabezadoOficialHTML(tituloDoc, codigo) {
   <table class="oficial-header">
     <tbody>
       <tr>
-        <td rowspan="4" class="oficial-logo"><img src="data:image/png;base64,${LOGO_B64}" width="72" /></td>
+        <td rowspan="4" class="oficial-logo"><img src="resources/escudo.png" width="60" /></td>
         <td rowspan="2" class="oficial-titulo-doc">${tituloDoc}</td>
         <td class="oficial-cod">CODIGO: ${codigo}</td>
       </tr>
@@ -75,6 +92,8 @@ function encabezadoOficialHTML(tituloDoc, codigo) {
   </table>`;
 }
 
+// Horario individual de un docente, en el mismo formato del
+// documento "HORARIO DE CLASE POR DOCENTE Y CURSO" (GPS-F-33).
 function horarioDocenteOficialHTML(doc, area) {
   const filas = [1, 2, 3, "DESCANSO", 4, 5, 6];
   let filasHTML = "";
@@ -106,15 +125,16 @@ function horarioDocenteOficialHTML(doc, area) {
   `;
 }
 
+// Horario de un día/sede (usado al exportar desde Edición), en el
+// formato de cuadro simple con título editable.
 function horarioEdicionOficialHTML(sede, dia, titulo) {
   const grupos = gruposDeSede(sede);
-  const textoVacio = document.getElementById("input-texto-vacio")?.value || "";
   let filas = "";
   HORAS.forEach((h) => {
     filas += `<tr><td class="oficial-hora">${h}</td>`;
     grupos.forEach((g) => {
       const doc = docenteEnCelda(sede, dia, h, g);
-      filas += `<td>${doc ? doc.nombre : textoVacio}</td>`;
+      filas += `<td>${doc ? doc.nombre : escHtml(notaDeCelda(sede, dia, g, h))}</td>`;
     });
     filas += `</tr>`;
   });
@@ -132,6 +152,11 @@ function horarioEdicionOficialHTML(sede, dia, titulo) {
     </table>
   `;
 }
+
+
+/* ------------------------------------------------------------
+   UTILIDADES
+   ------------------------------------------------------------ */
 
 function sedeDeCodigo(codigo) {
   if (!codigo || codigo === "A.P.") return null;
@@ -173,6 +198,11 @@ function textoCelda(codigo) {
   return codigo ? codigo : "—";
 }
 
+/* ------------------------------------------------------------
+   RENDER: Vista Consolidado
+   ------------------------------------------------------------ */
+
+// Las personas temporales sin clases asignadas no aparecen en el consolidado
 function visibleEnConsolidado(d) {
   return !d.temporal || cargaTotalSemana(d) > 0;
 }
@@ -206,6 +236,10 @@ function renderConsolidado() {
   html += `</tbody></table></div>`;
   cont.innerHTML = html;
 }
+
+/* ------------------------------------------------------------
+   RENDER: Vista por Sede (ordenada por carga descendente)
+   ------------------------------------------------------------ */
 
 function renderSede(sede) {
   const cont = document.getElementById("cont-sede-" + sede);
@@ -244,21 +278,63 @@ function renderSede(sede) {
   cont.innerHTML = html;
 }
 
+/* ------------------------------------------------------------
+   EDICIÓN – grilla día/sede, arrastrar y soltar
+   ------------------------------------------------------------ */
+
 let edicionSede = "B";
 let edicionDia = "Miercoles";
-let docenteSeleccionado = null;
-let ultimoAjuste = null;
-window.__arrastre = null;
+let docenteSeleccionado = null; // nombre del docente cuyas clases están resaltadas
+let ultimoAjuste = null; // instantánea del día antes del último "Ajustar" (para deshacer)
+let notasSinAsignar = {}; // "sede|dia|grupo|hora" -> mensaje que se muestra/exporta en bloques sin asignar
+let notaContexto = null; // { g, h } de la celda que se está editando (null = todos los sin asignar)
+window.__arrastre = null; // { nombre, hora } mientras se arrastra un bloque
 
 const DIA_LABEL = { Miercoles: "Miércoles" };
 function etiquetaDia(d) {
   return DIA_LABEL[d] || d;
 }
 
+// Escapa comillas para usar un nombre dentro de un onclick="..."
 function esc(texto) {
   return String(texto).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 }
 
+function escHtml(t) {
+  return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function claveNota(sede, dia, g, h) {
+  return `${sede}|${dia}|${g}|${h}`;
+}
+
+// Mensaje de un bloque sin asignar (solo aplica mientras la celda siga vacía)
+function notaDeCelda(sede, dia, g, h) {
+  if (docenteEnCelda(sede, dia, h, g)) return "";
+  return notasSinAsignar[claveNota(sede, dia, g, h)] || "";
+}
+
+// Borra los mensajes de celdas que ya tienen docente
+function depurarNotas(sede, dia) {
+  const pref = `${sede}|${dia}|`;
+  Object.keys(notasSinAsignar).forEach((k) => {
+    if (!k.startsWith(pref)) return;
+    const partes = k.split("|");
+    if (docenteEnCelda(sede, dia, Number(partes[3]), partes[2])) delete notasSinAsignar[k];
+  });
+}
+
+function celdasSinAsignar(sede, dia) {
+  const out = [];
+  gruposDeSede(sede).forEach((g) =>
+    HORAS.forEach((h) => {
+      if (!docenteEnCelda(sede, dia, h, g)) out.push({ g, h });
+    })
+  );
+  return out;
+}
+
+// Una hora está "libre" para el docente si es A.P. o no tiene dato
 function esLibre(c) {
   return c === null || c === undefined || c === "" || c === "A.P.";
 }
@@ -280,29 +356,35 @@ function docenteEnCelda(sede, dia, hora, grupo) {
 }
 
 function docentesDisponibles(dia, hora, sedeExcluir) {
+  // Docentes que en ese día/hora están en A.P. o sin dato (candidatos a cubrir)
   return DOCENTES.filter(
     (d) => esLibre(d.horario[dia][hora - 1]) && (!d.temporal || d.temporalDia === dia)
   );
 }
 
 function permanenciaDia(doc, dia) {
-  return doc.horario[dia].filter((c) => c && c !== "").length;
+  return doc.horario[dia].filter((c) => c && c !== "").length; // incluye A.P.
 }
 
 function horasDocenteEnSede(doc, sede, dia) {
   return doc.horario[dia].filter((c) => sedeDeCodigo(c) === sede).length;
 }
 
+// Docentes que trabajan (tienen clase) en la sede ese día, con más horas primero
 function docentesDelDia(sede, dia) {
   const todos = DOCENTES.map((d) => ({ doc: d, horas: horasDocenteEnSede(d, sede, dia) }));
   const regulares = todos
     .filter((x) => !x.doc.temporal && x.horas > 0)
     .sort((a, b) => b.horas - a.horas || a.doc.nombre.localeCompare(b.doc.nombre, "es"));
+  // Las personas agregadas con "+" van abajo, en el orden en que se agregaron,
+  // aunque todavía no tengan grupos asignados.
   const temporales = todos.filter(
     (x) => x.doc.temporal && x.doc.temporalDia === dia && (x.doc.temporalSede === sede || x.horas > 0)
   );
   return regulares.concat(temporales);
 }
+
+/* ---------- Avisos (en vez de alert) ---------- */
 
 let __toastTimer = null;
 function mostrarAviso(msg, tipo) {
@@ -317,36 +399,40 @@ function mostrarAviso(msg, tipo) {
   __toastTimer = setTimeout(() => t.classList.remove("visible"), 4500);
 }
 
+/* ---------- Selección / resaltado ---------- */
+
+// Clic en un bloque del horario: resalta todos los bloques del mismo docente
 function seleccionarDocente(nombre) {
   docenteSeleccionado = docenteSeleccionado === nombre ? null : nombre;
   renderEdicion();
 }
 
+// Clic en la lista de docentes: resalta sus bloques y abre su modal
 function clicDocenteLista(nombre) {
   docenteSeleccionado = nombre;
   renderEdicion();
   abrirModalDocente(nombre);
 }
 
+/* ---------- Render ---------- */
+
 function renderListaDocentes() {
   const cont = document.getElementById("lista-docentes-dia");
   if (!cont) return;
   const lista = docentesDelDia(edicionSede, edicionDia);
   let html = `<h4>Docentes del día <span class="contador">${lista.length}</span></h4>
-    <p class="ayuda">${SEDE_LABEL[edicionSede]} · ${etiquetaDia(edicionDia)}</p>`;
+    <p class="ayuda">${SEDE_LABEL[edicionSede]} · ${etiquetaDia(edicionDia)}<br>Arrastra un nombre a una celda para asignarle ese grupo.</p>`;
   if (lista.length === 0) {
     html += `<p class="ayuda">Nadie tiene clases en esta sede este día.</p>`;
   }
   lista.forEach(({ doc, horas }) => {
     const activo = docenteSeleccionado === doc.nombre ? " activo" : "";
     const temporal = doc.temporal ? " temporal" : "";
-    html += `<div class="item-docente${activo}${temporal}" role="button" tabindex="0"
-        draggable="true"
-        ondragstart="arrastrarDocenteLista(event,'${esc(doc.nombre)}')"
-        ondragend="finArrastre()"
+    html += `<div class="item-docente${activo}${temporal}" role="button" tabindex="0" draggable="true"
+        ondragstart="arrastrarDocenteLista(event,'${esc(doc.nombre)}')" ondragend="finArrastre()"
         onclick="clicDocenteLista('${esc(doc.nombre)}')"
         onkeydown="if(event.key==='Enter'){clicDocenteLista('${esc(doc.nombre)}')}"
-        title="Arrastra a cualquier celda o haz clic para ver su horario">
+        title="Clic: resaltar sus clases y ver su horario">
       <span class="item-nombre">${doc.nombre}${doc.temporal ? ' <span class="tag-temp">Temporal</span>' : ""}</span>
       <span class="item-horas">${horas} h</span>
       ${
@@ -359,10 +445,11 @@ function renderListaDocentes() {
   cont.innerHTML = html;
 }
 
+// Encabezado de cada grupo; si tiene bloques "sin asignar" muestra el botón Ajustar
 function encabezadoGrupo(g) {
   const hayVacios = HORAS.some((h) => !docenteEnCelda(edicionSede, edicionDia, h, g));
   const boton = hayVacios
-    ? `<button type="button" class="btn-ajustar" onclick="ajustarHorarioDia()" title="Reorganiza el día: los bloques sin asignar pasan a las primeras horas">Ajustar</button>`
+    ? `<button type="button" class="btn-ajustar" onclick="ajustarHorarioDia()" title="Reorganiza el día: los bloques sin asignar pasan a las primeras horas de cada grupo">Ajustar</button>`
     : "";
   return `<th>${boton}<div class="th-grupo">${g}</div></th>`;
 }
@@ -377,6 +464,9 @@ function renderEdicion() {
 
   const grupos = gruposDeSede(edicionSede);
   const cont = document.getElementById("grilla-edicion");
+  depurarNotas(edicionSede, edicionDia);
+  const btnNotas = document.getElementById("btn-nota-todos-barra");
+  if (btnNotas) btnNotas.style.display = celdasSinAsignar(edicionSede, edicionDia).length ? "inline-block" : "none";
   const btnDeshacer = document.getElementById("btn-deshacer-ajuste");
   if (btnDeshacer) {
     const visible = ultimoAjuste && ultimoAjuste.sede === edicionSede && ultimoAjuste.dia === edicionDia;
@@ -407,12 +497,15 @@ function renderEdicion() {
                       ondragstart="arrastrarDocente(event,'${esc(doc.nombre)}',${h})"
                       ondragend="finArrastre()"
                       onclick="seleccionarDocente('${esc(doc.nombre)}')"
-                      title="Clic para resaltar · Arrastra para mover o cambiar de grupo">
+                      title="Clic: resaltar todas sus clases · Arrastra para moverla a otro grupo u hora">
                     <span class="chip-texto">${doc.nombre}</span>
                     <button class="btn-mini" onclick="event.stopPropagation(); desactivarDocente('${esc(doc.nombre)}',${h})" title="Marcar ausente">✕</button>
                   </div>`;
       } else {
-        html += `<span class="celda-libre">Sin asignar</span>`;
+        const nota = notaDeCelda(edicionSede, edicionDia, g, h);
+        html += nota
+          ? `<span class="celda-nota" onclick="abrirModalNotaVacio('${g}',${h})" title="Clic para editar el mensaje">${escHtml(nota)}</span>`
+          : `<span class="celda-libre" onclick="abrirModalNotaVacio('${g}',${h})" title="Clic para escribir un mensaje en este bloque">Sin asignar</span>`;
       }
       html += `</td>`;
     });
@@ -425,39 +518,45 @@ function renderEdicion() {
   renderDisponibles();
 }
 
-function evaluarMovimientoAsignacion(nombre, grupoDestino, horaDestino) {
-  const doc = DOCENTES.find((d) => d.nombre === nombre);
-  if (!doc) return { ok: false, msg: "Docente no encontrado." };
-  const dia = edicionDia;
+/* ---------- Mover bloques (arrastrar y soltar) ---------- */
 
-  const ocupante = docenteEnCelda(edicionSede, dia, horaDestino, grupoDestino);
-  if (ocupante && ocupante !== doc) {
-    return {
-      ok: false,
-      msg: `${codigoEspaciado(grupoDestino)} ya tiene clase con ${ocupante.nombre} a la hora ${horaDestino}.`,
-    };
-  }
-
-  const slotDestino = doc.horario[dia][horaDestino - 1];
-  if (!esLibre(slotDestino)) {
-    return {
-      ok: false,
-      msg: `${doc.nombre} ya está ocupado a la hora ${horaDestino} (${slotDestino === "R.A." ? "reunión de área" : slotDestino}).`,
-    };
-  }
-
-  return {
-    ok: true,
-    aplicar: () => {
-      doc.horario[dia][horaDestino - 1] = grupoDestino;
-    },
-  };
-}
-
+// Valida un movimiento sin aplicarlo. Devuelve { ok, msg, silencioso, aplicar }.
+//  - No se puede mover a un grupo que ya tiene a otro docente a esa hora.
+//  - Si cambia de hora, el docente debe estar libre (A.P.) a la hora de destino.
+//  - Al cambiar de hora, la hora de origen del docente queda como A.P.
+//    (así nunca se supera la permanencia diaria de 6 horas).
 function evaluarMovimiento(nombre, horaOrigen, grupoDestino, horaDestino) {
   const doc = DOCENTES.find((d) => d.nombre === nombre);
   if (!doc) return { ok: false, msg: "Docente no encontrado." };
   const dia = edicionDia;
+
+  // Arrastrado desde la lista de docentes (sin hora de origen): solo asignar
+  if (horaOrigen === null) {
+    const slot = doc.horario[dia][horaDestino - 1];
+    if (slot === grupoDestino) return { ok: false, silencioso: true, msg: "" };
+    const ocupanteLista = docenteEnCelda(edicionSede, dia, horaDestino, grupoDestino);
+    if (ocupanteLista && ocupanteLista !== doc) {
+      return {
+        ok: false,
+        msg: `${codigoEspaciado(grupoDestino)} ya tiene clase con ${ocupanteLista.nombre} a la hora ${horaDestino}.`,
+      };
+    }
+    if (!esLibre(slot)) {
+      return {
+        ok: false,
+        msg: `${doc.nombre} ya está dando ${
+          slot === "R.A." ? "reunión de área" : "clase en " + codigoEspaciado(slot)
+        } a la hora ${horaDestino}.`,
+      };
+    }
+    return {
+      ok: true,
+      aplicar: () => {
+        doc.horario[dia][horaDestino - 1] = grupoDestino;
+      },
+    };
+  }
+
   const origen = doc.horario[dia][horaOrigen - 1];
   const destinoSlot = doc.horario[dia][horaDestino - 1];
   const esBloqueSede = sedeDeCodigo(origen) === edicionSede;
@@ -468,7 +567,7 @@ function evaluarMovimiento(nombre, horaOrigen, grupoDestino, horaDestino) {
   if (!esBloqueSede && !esLibre(origen)) {
     return {
       ok: false,
-      msg: `${doc.nombre} ya está ocupado a la hora ${horaOrigen}.`,
+      msg: `${doc.nombre} ya está ocupado a la hora ${horaOrigen} (${origen === "R.A." ? "reunión de área" : "clase en " + codigoEspaciado(origen)}).`,
     };
   }
 
@@ -492,7 +591,9 @@ function evaluarMovimiento(nombre, horaOrigen, grupoDestino, horaDestino) {
   if (!esLibre(destinoSlot)) {
     return {
       ok: false,
-      msg: `${doc.nombre} ya está ocupado a la hora ${horaDestino}.`,
+      msg: `${doc.nombre} ya está dando ${
+        destinoSlot === "R.A." ? "reunión de área" : "clase en " + codigoEspaciado(destinoSlot)
+      } a la hora ${horaDestino}.`,
     };
   }
   return {
@@ -504,42 +605,32 @@ function evaluarMovimiento(nombre, horaOrigen, grupoDestino, horaDestino) {
   };
 }
 
-function arrastrarDocenteLista(ev, nombre) {
-  window.__arrastreLista = nombre;
-  ev.dataTransfer.setData("text/plain", nombre);
-  ev.dataTransfer.effectAllowed = "copyMove";
-}
-
 function arrastrarDocente(ev, nombre, hora) {
   window.__arrastre = { nombre, hora };
   ev.dataTransfer.setData("text/plain", nombre);
   ev.dataTransfer.effectAllowed = "move";
 }
 
+function arrastrarDocenteLista(ev, nombre) {
+  window.__arrastre = { nombre, hora: null };
+  ev.dataTransfer.setData("text/plain", nombre);
+  ev.dataTransfer.effectAllowed = "move";
+}
+
 function finArrastre() {
   window.__arrastre = null;
-  window.__arrastreLista = null;
   document.querySelectorAll(".drop-ok, .drop-no").forEach((el) => el.classList.remove("drop-ok", "drop-no"));
 }
 
+// Al pasar sobre una celda: verde si el movimiento es válido, rojo si no
 function sobreCelda(ev, grupo, hora) {
   ev.preventDefault();
-  const arrList = window.__arrastreLista;
-  const arrGr = window.__arrastre;
-  if (!arrList && !arrGr) return;
-
-  let ok = false;
-  if (arrList) {
-    const r = evaluarMovimientoAsignacion(arrList, grupo, hora);
-    ok = r.ok;
-  } else if (arrGr) {
-    const r = evaluarMovimiento(arrGr.nombre, arrGr.hora, grupo, hora);
-    ok = r.ok;
-  }
-
+  const a = window.__arrastre;
+  if (!a) return;
+  const r = evaluarMovimiento(a.nombre, a.hora, grupo, hora);
   const td = ev.currentTarget;
-  td.classList.toggle("drop-ok", ok);
-  td.classList.toggle("drop-no", !ok);
+  td.classList.toggle("drop-ok", r.ok);
+  td.classList.toggle("drop-no", !r.ok && !r.silencioso);
 }
 
 function salirCelda(ev) {
@@ -550,38 +641,21 @@ function salirCelda(ev) {
 function soltarDocente(ev, grupoDestino, horaDestino) {
   ev.preventDefault();
   ev.currentTarget.classList.remove("drop-ok", "drop-no");
-
-  const arrList = window.__arrastreLista;
-  const arrGr = window.__arrastre;
+  const a = window.__arrastre;
   window.__arrastre = null;
-  window.__arrastreLista = null;
-
+  if (!a) return;
   if (!requiereSesion()) return;
-
-  if (arrList) {
-    const r = evaluarMovimientoAsignacion(arrList, grupoDestino, horaDestino);
-    if (!r.ok) {
-      mostrarAviso(r.msg, "error");
-      return;
-    }
-    r.aplicar();
-    ultimoAjuste = null;
-    docenteSeleccionado = arrList;
-    mostrarAviso(`${arrList} asignado a ${codigoEspaciado(grupoDestino)}, hora ${horaDestino}.`, "ok");
-    renderTodo();
-  } else if (arrGr) {
-    const r = evaluarMovimiento(arrGr.nombre, arrGr.hora, grupoDestino, horaDestino);
-    if (r.silencioso) return;
-    if (!r.ok) {
-      mostrarAviso(r.msg, "error");
-      return;
-    }
-    r.aplicar();
-    ultimoAjuste = null;
-    docenteSeleccionado = arrGr.nombre;
-    mostrarAviso(`${arrGr.nombre} → ${codigoEspaciado(grupoDestino)}, hora ${horaDestino}.`, "ok");
-    renderTodo();
+  const r = evaluarMovimiento(a.nombre, a.hora, grupoDestino, horaDestino);
+  if (r.silencioso) return;
+  if (!r.ok) {
+    mostrarAviso(r.msg, "error");
+    return;
   }
+  r.aplicar();
+  ultimoAjuste = null;
+  docenteSeleccionado = a.nombre;
+  mostrarAviso(`${a.nombre} → ${codigoEspaciado(grupoDestino)}, hora ${horaDestino}.`, "ok");
+  renderTodo();
 }
 
 function desactivarDocente(nombre, hora) {
@@ -597,7 +671,7 @@ function desactivarDocente(nombre, hora) {
 
 function renderDisponibles() {
   const cont = document.getElementById("panel-disponibles");
-  let html = `<h4>Docentes libres por hora</h4>`;
+  let html = `<h4>Docentes libres por hora (para reasignar)</h4>`;
   HORAS.forEach((h) => {
     const libres = docentesDisponibles(edicionDia, h, edicionSede);
     if (libres.length === 0) return;
@@ -605,18 +679,25 @@ function renderDisponibles() {
     libres.forEach((d) => {
       html += `<li>
         <span class="chip-docente chip-disponible" draggable="true"
-              ondragstart="arrastrarDocenteLista(event,'${esc(d.nombre)}')"
+              ondragstart="arrastrarDocente(event,'${esc(d.nombre)}',${h})"
               ondragend="finArrastre()"
               onclick="clicDocenteLista('${esc(d.nombre)}')"
-              title="Arrastra directamente a cualquier celda">
+              title="Clic para ver su horario completo · arrastra a una celda vacía para asignarlo">
           ${d.nombre} <small>(${permanenciaDia(d, edicionDia)}h hoy)</small>
         </span>
       </li>`;
     });
     html += `</ul></div>`;
   });
+  html += `<p class="ayuda">Arrastra un docente libre a una celda "Sin asignar" de su misma hora (o de otra hora en que también esté libre).</p>`;
   cont.innerHTML = html;
 }
+
+/* ------------------------------------------------------------
+   MODAL DE DOCENTE – ver horario completo y ubicarlo
+   en el día/sede que se está editando
+   (se abre desde la lista "Docentes del día")
+   ------------------------------------------------------------ */
 
 function abrirModalDocente(nombre) {
   const doc = buscar(nombre);
@@ -665,7 +746,7 @@ function renderModalDocente() {
   HORAS.forEach((h) => {
     const actual = doc.horario[edicionDia][h - 1];
     const claseSede = sedeDeCodigo(actual) === edicionSede;
-    const bloqueada = !claseSede && !esLibre(actual);
+    const bloqueada = !claseSede && !esLibre(actual); // clase en otra sede o reunión de área
     const motivo = bloqueada
       ? actual === "R.A."
         ? "Reunión de área"
@@ -694,7 +775,8 @@ function renderModalDocente() {
       <td>${bloqueada ? "" : `<button class="btn-mini-aplicar" onclick="aplicarAsignacionModal(${h})">Aplicar</button>`}</td>
     </tr>`;
   });
-  html += `</tbody></table></div>`;
+  html += `</tbody></table></div>
+    <p class="ayuda">Los grupos "ocupados" ya tienen otro docente a esa hora. Si el docente ya da clase en otra sede o tiene reunión de área, esa hora no se puede modificar desde aquí.</p>`;
 
   cont.innerHTML = html;
 }
@@ -727,6 +809,11 @@ function aplicarAsignacionModal(hora) {
   renderModalDocente();
   renderTodo();
 }
+
+/* ------------------------------------------------------------
+   PERSONA TEMPORAL – docente o profesional que participa solo
+   en un día/sede (actividad específica, reemplazo, etc.)
+   ------------------------------------------------------------ */
 
 function abrirModalNuevoDocente() {
   if (!requiereSesion()) return;
@@ -769,8 +856,10 @@ function confirmarNuevoDocente() {
     temporalSede: edicionSede,
   });
   cerrarModalNuevoDocente();
-  mostrarAviso(`${nombre} agregado/a. Arrastra su tarjeta o haz clic para asignarle grupos.`, "ok");
+  mostrarAviso(`${nombre} agregado/a. Haz clic en su nombre para asignarle grupos.`, "ok");
   renderTodo();
+  const lista = document.getElementById("lista-docentes-dia");
+  if (lista) lista.scrollTop = lista.scrollHeight;
 }
 
 function quitarDocenteTemporal(nombre) {
@@ -787,12 +876,25 @@ function quitarDocenteTemporal(nombre) {
   renderTodo();
 }
 
+/* ------------------------------------------------------------
+   AJUSTAR – reorganiza el día de la sede para que los bloques
+   "sin asignar" queden SIEMPRE en las primeras horas de cada grupo
+   (nunca entre clases ni al final), sin cruzar docentes.
+   ------------------------------------------------------------ */
+
+// Calcula (sin aplicar) un horario del día donde cada grupo tiene sus clases
+// en las últimas horas. Cada grupo conserva sus mismas clases (mismos
+// docentes y cantidad de horas); solo cambian de hora. Restricciones:
+//  - un docente nunca queda en dos grupos a la misma hora;
+//  - las horas donde el docente ya tiene un compromiso que no se mueve
+//    (clase en otra sede, reunión de área) no se tocan;
+//  - se prefiere dejar cada clase donde ya está, para mover lo mínimo.
 function calcularAjuste(sede, dia) {
   const grupos = gruposDeSede(sede);
   const gset = new Set(grupos);
-  const lecciones = {};
-  const actual = {};
-  const fijo = new Map();
+  const lecciones = {}; // grupo -> Map(docente -> cantidad de horas)
+  const actual = {}; // grupo -> { hora: docente } (para preferir lo existente)
+  const fijo = new Map(); // docente -> Set(horas con compromiso fijo)
   grupos.forEach((g) => {
     lecciones[g] = new Map();
     actual[g] = {};
@@ -811,18 +913,19 @@ function calcularAjuste(sede, dia) {
     });
   });
 
-  const n = {};
+  const n = {}; // grupo -> cantidad de clases del día
   for (const g of grupos) {
     n[g] = 0;
     lecciones[g].forEach((c) => (n[g] += c));
     if (n[g] > HORAS.length) {
       return {
         ok: false,
-        msg: `El grupo ${g} tiene más clases que horas disponibles.`,
+        msg: `El grupo ${g} tiene más clases que horas (hay docentes cruzados a la misma hora). Corrige ese cruce primero.`,
       };
     }
   }
 
+  // ¿Ya está todo en orden? (sin asignar solo al comienzo de cada grupo)
   const yaOrdenado = grupos.every((g) => {
     const horasConClase = HORAS.filter((h) => actual[g][h]);
     return (
@@ -832,6 +935,7 @@ function calcularAjuste(sede, dia) {
   });
   if (yaOrdenado) return { ok: true, yaOrdenado: true, cambios: 0 };
 
+  // Búsqueda: llenar cada celda (grupo, hora) de las últimas horas con un docente
   const restante = {};
   grupos.forEach((g) => (restante[g] = new Map(lecciones[g])));
   const usado = {};
@@ -841,6 +945,8 @@ function calcularAjuste(sede, dia) {
   grupos.forEach((g) => {
     for (let h = HORAS.length - n[g] + 1; h <= HORAS.length; h++) pendientes.add({ g, h });
   });
+  const docentesConClases = new Set();
+  grupos.forEach((g) => lecciones[g].forEach((_, d) => docentesConClases.add(d)));
 
   const ocupadoFijo = (t, h) => fijo.has(t) && fijo.get(t).has(h);
   const candidatosDe = (cell) => {
@@ -853,9 +959,11 @@ function calcularAjuste(sede, dia) {
     return lista;
   };
 
+  // Búsqueda con "ramificar y podar": encuentra una solución válida y luego sigue
+  // buscando otra que mueva menos bloques (costo = celdas donde cambia el docente).
   let nodos = 0;
-  let limite = 250000;
-  const EXTRA_MEJORA = 40000;
+  let limite = 250000; // tope para encontrar la primera solución
+  const EXTRA_MEJORA = 40000; // nodos adicionales para intentar mejorarla
   let agotado = false;
   let costo = 0;
   let mejorSol = null;
@@ -867,7 +975,7 @@ function calcularAjuste(sede, dia) {
       mejorSol = new Map(asign);
       mejorCosto = costo;
       limite = Math.min(limite, nodos + EXTRA_MEJORA);
-      return costo === 0;
+      return costo === 0; // costo 0 = nada que mover: no se puede mejorar
     }
     if (++nodos > limite) {
       agotado = true;
@@ -875,8 +983,8 @@ function calcularAjuste(sede, dia) {
     }
     let mejor = null;
     let mejorLista = null;
-    const ofertaGrupo = {};
-    const ofertaHoras = new Map();
+    const ofertaGrupo = {}; // grupo -> Map(docente -> celdas donde podría ir)
+    const ofertaHoras = new Map(); // docente -> Set(horas donde podría ir)
     for (const cell of pendientes) {
       const lista = candidatosDe(cell);
       if (lista.length === 0) return false;
@@ -891,7 +999,7 @@ function calcularAjuste(sede, dia) {
         mejorLista = lista;
       }
     }
-
+    // Poda: cada docente debe poder cubrir todas sus clases restantes
     const totalDocente = new Map();
     for (const g of grupos) {
       for (const [t, r] of restante[g]) {
@@ -929,7 +1037,9 @@ function calcularAjuste(sede, dia) {
   if (!mejorSol) {
     return {
       ok: false,
-      msg: "No fue posible ajustar automáticamente debido a conflictos de cruce de horario.",
+      msg:
+        "No fue posible ajustar: con los docentes de este día, pasar los bloques sin asignar a las primeras horas dejaría a un docente en dos grupos a la misma hora. " +
+        "Agrega a alguien con el botón + para cubrir los bloques sin asignar, o reorganiza algún bloque a mano y vuelve a intentar.",
     };
   }
 
@@ -949,7 +1059,7 @@ function calcularAjuste(sede, dia) {
     aplicar: () => {
       DOCENTES.forEach((d) =>
         d.horario[dia].forEach((c, i) => {
-          if (gset.has(c)) d.horario[dia][i] = "A.P.";
+          if (gset.has(c)) d.horario[dia][i] = "A.P."; // se libera y luego se vuelve a colocar
         })
       );
       mejorSol.forEach((d, clave) => {
@@ -968,30 +1078,173 @@ function ajustarHorarioDia() {
     return;
   }
   if (r.yaOrdenado) {
-    mostrarAviso("El horario ya está organizado.", "ok");
+    mostrarAviso("El horario ya está organizado: los bloques sin asignar están en las primeras horas.", "ok");
     return;
   }
   ultimoAjuste = {
     sede: edicionSede,
     dia: edicionDia,
     snap: DOCENTES.map((d) => ({ d, slots: d.horario[edicionDia].slice() })),
+    notas: Object.assign({}, notasSinAsignar),
   };
   r.aplicar();
-  mostrarAviso(`Horario ajustado: ${r.cambios} bloque(s) reubicado(s).`, "ok");
+  mostrarAviso(`Horario ajustado: ${r.cambios} bloque(s) reubicado(s). Puedes deshacerlo con "↩ Deshacer ajuste".`, "ok");
   renderTodo();
 }
 
 function deshacerAjuste() {
   if (!ultimoAjuste) return;
   if (!requiereSesion()) return;
-  const { dia, snap } = ultimoAjuste;
+  const { dia, snap, notas } = ultimoAjuste;
   snap.forEach(({ d, slots }) => {
     d.horario[dia] = slots.slice();
   });
+  notasSinAsignar = Object.assign({}, notas);
   ultimoAjuste = null;
   mostrarAviso("Se deshizo el último ajuste.", "ok");
   renderTodo();
 }
+
+/* ------------------------------------------------------------
+   MENSAJE EN BLOQUES "SIN ASIGNAR" (para que no salgan vacíos
+   al exportar). Se escribe por celda o para todas a la vez.
+   ------------------------------------------------------------ */
+
+// g/h = celda concreta; sin argumentos = todos los sin asignar del día y sede
+function abrirModalNotaVacio(g, h) {
+  if (!requiereSesion()) return;
+  const vacias = celdasSinAsignar(edicionSede, edicionDia);
+  notaContexto = g ? { g, h } : null;
+  const ctx = document.getElementById("nota-vacio-contexto");
+  const input = document.getElementById("input-nota-vacio");
+  const btnUno = document.getElementById("btn-nota-guardar");
+  const btnTodos = document.getElementById("btn-nota-todos");
+  const lugar = `${etiquetaDia(edicionDia)} · ${SEDE_LABEL[edicionSede]}`;
+  if (g) {
+    ctx.textContent = `Grupo ${g} · hora ${h} · ${lugar}`;
+    input.value = notaDeCelda(edicionSede, edicionDia, g, h);
+    btnUno.style.display = "block";
+    btnTodos.textContent = `Poner en los ${vacias.length} bloques sin asignar de este día`;
+  } else {
+    ctx.textContent = `${vacias.length} bloque(s) sin asignar · ${lugar}`;
+    input.value = "";
+    btnUno.style.display = "none";
+    btnTodos.textContent = "Aplicar a todos (vacío = quitar los mensajes)";
+  }
+  document.getElementById("modal-nota-vacio").classList.add("activo");
+  setTimeout(() => input.focus(), 50);
+}
+
+function cerrarModalNotaVacio() {
+  document.getElementById("modal-nota-vacio").classList.remove("activo");
+}
+
+function guardarNotaVacio(aTodos) {
+  if (!requiereSesion()) return;
+  const texto = document.getElementById("input-nota-vacio").value.replace(/\s+/g, " ").trim();
+  const celdas = aTodos || !notaContexto ? celdasSinAsignar(edicionSede, edicionDia) : [notaContexto];
+  celdas.forEach(({ g, h }) => {
+    const k = claveNota(edicionSede, edicionDia, g, h);
+    if (texto) notasSinAsignar[k] = texto;
+    else delete notasSinAsignar[k];
+  });
+  cerrarModalNotaVacio();
+  mostrarAviso(
+    texto ? `Mensaje "${texto}" puesto en ${celdas.length} bloque(s).` : `Mensaje quitado de ${celdas.length} bloque(s).`,
+    "ok"
+  );
+  renderEdicion();
+}
+
+/* ------------------------------------------------------------
+   MODAL OFICIAL – horario individual con el formato exacto
+   del documento del colegio (GPS-F-33), con descarga a .docx/.pdf
+   ------------------------------------------------------------ */
+
+function abrirModalOficial(nombre) {
+  const doc = buscar(nombre);
+  if (!doc) return;
+  window.__docenteOficial = doc.nombre;
+  window.__areaOficial = window.__areaOficial || "";
+  renderModalOficial();
+  document.getElementById("modal-oficial").classList.add("activo");
+}
+
+function cerrarModalOficial() {
+  document.getElementById("modal-oficial").classList.remove("activo");
+}
+
+function actualizarAreaOficial(valor) {
+  window.__areaOficial = valor;
+  renderVistaPreviaOficial();
+}
+
+function renderVistaPreviaOficial() {
+  const doc = buscar(window.__docenteOficial);
+  if (!doc) return;
+  document.getElementById("oficial-preview").innerHTML = horarioDocenteOficialHTML(
+    doc,
+    window.__areaOficial
+  );
+}
+
+function renderModalOficial() {
+  const doc = buscar(window.__docenteOficial);
+  if (!doc) return;
+  const cont = document.getElementById("modal-oficial-contenido");
+  cont.innerHTML = `
+    <div class="modal-oficial-barra">
+      <label>Área(s) del docente (opcional):
+        <input type="text" id="input-area-oficial" value="${window.__areaOficial || ""}"
+               oninput="actualizarAreaOficial(this.value)" placeholder="Ej: MATEMÁTICAS" />
+      </label>
+      <div class="modal-oficial-botones">
+        <button onclick="exportarDocenteOficialPDF()">📄 Descargar PDF</button>
+        <button onclick="exportarDocenteOficialDOCX()">📝 Descargar .docx</button>
+      </div>
+    </div>
+    <div id="oficial-preview" class="oficial-preview"></div>
+  `;
+  renderVistaPreviaOficial();
+}
+
+async function exportarDocenteOficialPDF() {
+  const origen = document.getElementById("oficial-preview");
+  const { jsPDF } = window.jspdf;
+  const canvas = await html2canvas(origen, { scale: 2 });
+  const img = canvas.toDataURL("image/png");
+  const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
+  const w = pdf.internal.pageSize.getWidth() - 40;
+  const h = (canvas.height * w) / canvas.width;
+  pdf.addImage(img, "PNG", 20, 20, w, h);
+  const doc = buscar(window.__docenteOficial);
+  pdf.save(`horario-${doc.nombre.replace(/\s+/g, "_")}.pdf`);
+}
+
+function exportarDocenteOficialDOCX() {
+  const contenido = document.getElementById("oficial-preview").innerHTML;
+  const html = `<html><head><meta charset="utf-8"><style>${ESTILOS_OFICIALES_DOCX}</style></head><body>${contenido}</body></html>`;
+  const blob = window.htmlDocx.asBlob(html);
+  const doc = buscar(window.__docenteOficial);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `horario-${doc.nombre.replace(/\s+/g, "_")}.docx`;
+  a.click();
+}
+
+// Estilos inline replicados dentro del .docx exportado (Word no lee styles.css externo)
+const ESTILOS_OFICIALES_DOCX = `
+  table.oficial-header, table.oficial-tabla { border-collapse: collapse; width: 100%; }
+  table.oficial-header td { border: 1px solid #000; padding: 4px 8px; font-size: 11px; text-align: center; }
+  table.oficial-header .oficial-titulo-doc { font-weight: bold; }
+  table.oficial-tabla th, table.oficial-tabla td { border: 1px solid #000; padding: 5px; text-align: center; font-size: 11px; }
+  table.oficial-tabla th { background: #eee; font-weight: bold; }
+  .oficial-hora { font-weight: bold; }
+  .oficial-descanso { font-weight: bold; text-align: center; }
+  .oficial-linea { font-size: 12px; margin: 2px 0; }
+  .oficial-nota { font-size: 10px; margin-top: 6px; }
+  .oficial-titulo-linea { text-align: center; font-weight: bold; font-size: 13px; margin: 2px 0; }
+`;
 
 function cambiarSedeEdicion(sede) {
   edicionSede = sede;
@@ -1001,6 +1254,10 @@ function cambiarDiaEdicion(dia) {
   edicionDia = dia;
   renderEdicion();
 }
+
+/* ------------------------------------------------------------
+   NAVEGACIÓN
+   ------------------------------------------------------------ */
 
 function mostrarVista(id) {
   document.querySelectorAll(".vista").forEach((v) => v.classList.remove("activa"));
@@ -1016,6 +1273,10 @@ function renderTodo() {
   renderEdicion();
 }
 
+/* ------------------------------------------------------------
+   EXPORTAR PDF / DOCX
+   ------------------------------------------------------------ */
+
 function abrirExport(vistaId) {
   document.getElementById("modal-export").classList.add("activo");
   window.__vistaAExportar = vistaId;
@@ -1029,11 +1290,13 @@ function abrirExport(vistaId) {
   }
   document.getElementById("btn-export-excel").style.display = vistaId === "consolidado" ? "block" : "none";
 }
-
 function cerrarExport() {
   document.getElementById("modal-export").classList.remove("activo");
 }
 
+// Contenedor temporal fuera de pantalla para renderizar una versión
+// "limpia" (sin scroll ni controles de edición) antes de exportarla,
+// para que html2canvas capture SIEMPRE el ancho completo de la tabla.
 function construirOrigenExport(id) {
   const div = document.createElement("div");
   div.className = "oficial-temporal";
@@ -1085,7 +1348,7 @@ async function exportarDOCX() {
     html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${estilos}</style></head><body>${tabla.outerHTML}</body></html>`;
   }
   if (!window.htmlDocx || !window.htmlDocx.asBlob) {
-    alert("La librería para Word aún no ha cargado.");
+    alert("La librería para generar Word aún no ha cargado. Espera un segundo y vuelve a intentar (revisa tu conexión a internet).");
     return;
   }
   const blob = window.htmlDocx.asBlob(html, { orientation: id === "edicion" ? "portrait" : "landscape" });
@@ -1096,9 +1359,12 @@ async function exportarDOCX() {
   cerrarExport();
 }
 
+// Exportar el Consolidado a Excel (.xlsx), replicando la estructura del
+// documento oficial: encabezado, columnas No/DIR/NOMBRE y 5 días x 6 horas,
+// con ancho de columna suficiente para que cada grado se vea completo.
 function exportarConsolidadoExcel() {
   if (!window.XLSX) {
-    alert("Librería Excel no cargada.");
+    alert("La librería para generar Excel aún no ha cargado. Verifica tu conexión a internet e intenta de nuevo.");
     return;
   }
   const filas = [];
@@ -1129,9 +1395,17 @@ function exportarConsolidadoExcel() {
   });
 
   const ws = XLSX.utils.aoa_to_sheet(filas);
-  ws["!cols"] = [{ wch: 4 }, { wch: 9 }, { wch: 34 }, ...Array(30).fill({ wch: 8 })];
 
-  const ultimaCol = 32;
+  // Anchos de columna: suficientes para ver el grado completo ("10-3 A")
+  ws["!cols"] = [
+    { wch: 4 },
+    { wch: 9 },
+    { wch: 34 },
+    ...Array(30).fill({ wch: 8 }),
+  ];
+
+  // Combinar celdas del encabezado como en el documento original
+  const ultimaCol = 32; // 0-indexada: 3 (No/DIR/NOMBRE) + 30 columnas de horario - 1
   ws["!merges"] = [
     { s: { r: 0, c: 0 }, e: { r: 0, c: ultimaCol } },
     { s: { r: 2, c: 0 }, e: { r: 2, c: ultimaCol } },
@@ -1148,18 +1422,18 @@ function exportarConsolidadoExcel() {
   XLSX.writeFile(wb, "horario-consolidado.xlsx");
 }
 
-const ESTILOS_OFICIALES_DOCX = `
-  table.oficial-header, table.oficial-tabla { border-collapse: collapse; width: 100%; }
-  table.oficial-header td { border: 1px solid #000; padding: 4px 8px; font-size: 11px; text-align: center; }
-  table.oficial-header .oficial-titulo-doc { font-weight: bold; }
-  table.oficial-tabla th, table.oficial-tabla td { border: 1px solid #000; padding: 5px; text-align: center; font-size: 11px; }
-  table.oficial-tabla th { background: #eee; font-weight: bold; }
-  .oficial-hora { font-weight: bold; }
-  .oficial-descanso { font-weight: bold; text-align: center; }
-  .oficial-linea { font-size: 12px; margin: 2px 0; }
-  .oficial-nota { font-size: 10px; margin-top: 6px; }
-  .oficial-titulo-linea { text-align: center; font-weight: bold; font-size: 13px; margin: 2px 0; }
-`;
+/* ------------------------------------------------------------
+   INICIO
+   ------------------------------------------------------------ */
+
+/* ------------------------------------------------------------
+   SESIÓN (Supabase Auth) Y GUARDAR/CARGAR (Supabase DB)
+   Requiere completar config.js con las llaves del proyecto.
+   Mientras config.js tenga los valores de ejemplo, el sitio
+   funciona igual mostrando el horario, pero iniciar sesión y
+   guardar/cargar mostrarán un aviso de "base de datos no
+   configurada" en vez de fallar en silencio.
+   ------------------------------------------------------------ */
 
 let supabaseClient = null;
 try {
@@ -1173,15 +1447,15 @@ try {
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
 } catch (e) {
-  console.warn("Supabase no configurado:", e);
+  console.warn("Supabase no está configurado todavía:", e);
 }
 
 let sesionUsuario = null;
 
 function requiereSesion() {
-  if (!supabaseClient) return true;
+  if (!supabaseClient) return true; // sin base de datos configurada, se edita localmente
   if (!sesionUsuario) {
-    alert('Debes iniciar sesión para hacer modificaciones.');
+    alert('Debes iniciar sesión para hacer modificaciones. Usa el botón "Iniciar sesión" en la parte superior.');
     return false;
   }
   return true;
@@ -1223,7 +1497,7 @@ function cerrarModalLogin() {
 async function intentarLogin() {
   const errorEl = document.getElementById("login-error");
   if (!supabaseClient) {
-    errorEl.textContent = "Base de datos no configurada.";
+    errorEl.textContent = "La base de datos aún no está configurada (falta completar config.js con tu proyecto de Supabase).";
     return;
   }
   const email = document.getElementById("login-email").value.trim();
@@ -1258,10 +1532,13 @@ function cerrarGuardarCargar() {
 async function guardarHorarioBD() {
   if (!requiereSesion()) return;
   const msg = document.getElementById("guardar-mensaje");
-  if (!supabaseClient) return;
+  if (!supabaseClient) {
+    msg.textContent = "Base de datos no configurada todavía (ver config.js).";
+    return;
+  }
   const nombre = document.getElementById("input-nombre-guardar").value.trim();
   if (!nombre) {
-    msg.textContent = "Escribe un nombre.";
+    msg.textContent = "Escribe un nombre para el horario (ej: Horario 2026, Borrador).";
     return;
   }
   const datos = DOCENTES.map((d) => ({
@@ -1281,7 +1558,7 @@ async function guardarHorarioBD() {
       { onConflict: "nombre" }
     );
   if (error) {
-    msg.textContent = "Error: " + error.message;
+    msg.textContent = "Error al guardar: " + error.message;
   } else {
     msg.textContent = `Guardado como "${nombre}".`;
     listarHorariosBD();
@@ -1290,17 +1567,20 @@ async function guardarHorarioBD() {
 
 async function listarHorariosBD() {
   const cont = document.getElementById("lista-horarios-guardados");
-  if (!supabaseClient) return;
+  if (!supabaseClient) {
+    cont.innerHTML = '<p class="ayuda">Base de datos no configurada todavía (ver config.js y supabase-setup.sql).</p>';
+    return;
+  }
   const { data, error } = await supabaseClient
     .from("tabla_horarios")
     .select("nombre, actualizado_en, actualizado_por")
     .order("actualizado_en", { ascending: false });
   if (error) {
-    cont.innerHTML = `<p class="ayuda">Error: ${error.message}</p>`;
+    cont.innerHTML = `<p class="ayuda">Error al listar: ${error.message}</p>`;
     return;
   }
   if (!data || data.length === 0) {
-    cont.innerHTML = '<p class="ayuda">No hay horarios guardados.</p>';
+    cont.innerHTML = '<p class="ayuda">Aún no hay horarios guardados.</p>';
     return;
   }
   cont.innerHTML = data
@@ -1309,7 +1589,9 @@ async function listarHorariosBD() {
     <div class="fila-horario-guardado">
       <div>
         <strong>${h.nombre}</strong>
-        <div class="ayuda">Actualizado: ${new Date(h.actualizado_en).toLocaleString("es-CO")}</div>
+        <div class="ayuda">Actualizado: ${new Date(h.actualizado_en).toLocaleString("es-CO")}${
+        h.actualizado_por ? " · " + h.actualizado_por : ""
+      }</div>
       </div>
       <button onclick="cargarHorarioBD('${h.nombre.replace(/'/g, "\\'")}')">Cargar</button>
     </div>`
@@ -1319,16 +1601,24 @@ async function listarHorariosBD() {
 
 async function cargarHorarioBD(nombre) {
   if (!supabaseClient) return;
-  if (!confirm(`¿Cargar "${nombre}"?`)) return;
+  if (!confirm(`¿Cargar "${nombre}"? Esto reemplazará el horario que se está viendo ahora en el sitio.`)) return;
   const { data, error } = await supabaseClient.from("tabla_horarios").select("datos").eq("nombre", nombre).single();
-  if (error || !data) return;
+  if (error || !data) {
+    alert("No se pudo cargar: " + (error ? error.message : "no encontrado"));
+    return;
+  }
   DOCENTES.length = 0;
   ultimoAjuste = null;
   docenteSeleccionado = null;
   data.datos.forEach((d) => DOCENTES.push(d));
   renderTodo();
   cerrarGuardarCargar();
+  alert(`Horario "${nombre}" cargado. El sitio ya está actualizado.`);
 }
+
+/* ------------------------------------------------------------
+   INICIO
+   ------------------------------------------------------------ */
 
 document.addEventListener("DOMContentLoaded", () => {
   renderTodo();

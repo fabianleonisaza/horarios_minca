@@ -1,7 +1,7 @@
 :root {
-  --azul-sedeA: #1b3a6b;
-  --naranja-sedeB: #b85c00;
-  --verde-sedeC: #1f6b3a;
+  --azul-sedeA: #026c02;
+  --naranja-sedeB: #0202ae;
+  --verde-sedeC: #a40404;
   --gris-claro: #f2f3f5;
   --gris-borde: #d7dbe0;
   --texto: #1f2430;
@@ -12,7 +12,7 @@
 
 body {
   margin: 0;
-  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  font-family: sans-serif;
   color: var(--texto);
   background: #fafafa;
 }
@@ -69,7 +69,7 @@ h2 { margin-top: 0; }
 .tabla-horario {
   border-collapse: collapse;
   width: 100%;
-  font-size: 0.78rem;
+  font-size: 0.6rem;
   min-width: 900px;
 }
 .tabla-horario th, .tabla-horario td {
@@ -109,7 +109,7 @@ h2 { margin-top: 0; }
 /* --- Edición --- */
 .edicion-layout {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 200px 1fr;
   gap: 18px;
 }
 .panel-izquierdo {
@@ -262,7 +262,7 @@ h2 { margin-top: 0; }
 .col-nombre-click { cursor: pointer; }
 .col-nombre-click:hover { text-decoration: underline; }
 
-/* --- Formato oficial --- */
+/* --- Formato oficial (encabezado institucional, para vista previa y exportación) --- */
 .oficial-preview {
   background: #fff;
   padding: 16px;
@@ -327,6 +327,7 @@ table.oficial-tabla th { background: #eee; font-weight: 700; }
 .oficial-nota { font-size: 0.7rem; margin-top: 6px; color: #333; }
 .oficial-titulo-linea { text-align: center; font-weight: 700; font-size: 0.9rem; margin: 2px 0; }
 
+/* Contenedor temporal usado solo para generar el export de Edición (fuera de vista) */
 .oficial-temporal {
   position: fixed;
   left: -9999px;
@@ -395,6 +396,7 @@ table.oficial-tabla th { background: #eee; font-weight: 700; }
   .edicion-layout { grid-template-columns: 1fr; }
 }
 
+
 /* --- Edición: lista de docentes del día, resaltado y arrastre --- */
 .edicion-cuerpo { display: flex; gap: 14px; align-items: flex-start; }
 #grilla-edicion { flex: 1; min-width: 0; overflow-x: auto; }
@@ -431,7 +433,7 @@ table.oficial-tabla th { background: #eee; font-weight: 700; }
   background: #fff;
   border: 1px solid var(--gris-borde);
   border-radius: 6px;
-  cursor: grab;
+  cursor: pointer;
   text-align: left;
   font-size: 0.74rem;
   font-family: inherit;
@@ -452,6 +454,7 @@ table.oficial-tabla th { background: #eee; font-weight: 700; }
   font-weight: 600;
 }
 
+/* Bloques: que la ✕ no tape el nombre */
 .chip-docente { padding-right: 22px; word-break: break-word; }
 .chip-docente.chip-resaltado {
   background: #fff3bf;
@@ -461,11 +464,13 @@ table.oficial-tabla th { background: #eee; font-weight: 700; }
 }
 .chip-docente.chip-opaco { opacity: 0.45; }
 
+/* Vista previa del destino mientras se arrastra */
 .celda-edicion.drop-ok { background: #e6f6ea; outline: 2px dashed #2e8b57; outline-offset: -3px; }
 .celda-edicion.drop-no { background: #fdeaea; outline: 2px dashed #c0392b; outline-offset: -3px; }
 
 .scroll-x { overflow-x: auto; }
 
+/* Aviso temporal (reemplaza a los alert) */
 .toast {
   position: fixed;
   left: 50%;
@@ -490,28 +495,11 @@ table.oficial-tabla th { background: #eee; font-weight: 700; }
   .col-docentes { position: static; width: 100%; flex-basis: auto; max-height: 240px; }
 }
 
-.barra-edicion { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+
+/* --- Edición: agregar persona temporal y botón Ajustar --- */
+.barra-edicion { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
 .barra-edicion .btn-export { margin-bottom: 0; }
 .btn-secundario { background: #5f6b7a; }
-
-.config-texto-vacio {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  color: #444;
-  background: #fff;
-  padding: 4px 10px;
-  border: 1px solid var(--gris-borde);
-  border-radius: 6px;
-}
-.config-texto-vacio input {
-  padding: 4px 8px;
-  border: 1px solid var(--gris-borde);
-  border-radius: 4px;
-  font-size: 0.8rem;
-  width: 180px;
-}
 
 .col-docentes { display: flex; flex-direction: column; overflow: hidden; }
 .lista-docentes-scroll { flex: 1; min-height: 0; overflow-y: auto; }
@@ -572,3 +560,25 @@ table.oficial-tabla th { background: #eee; font-weight: 700; }
   cursor: pointer;
 }
 .btn-ajustar:hover { background: #b9770e; }
+
+
+/* --- Edición: arrastrar desde la lista y mensajes en bloques sin asignar --- */
+.item-docente[draggable="true"] { cursor: grab; }
+.item-docente[draggable="true"]:active { cursor: grabbing; }
+
+.celda-libre, .celda-nota {
+  display: block;
+  padding: 6px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.celda-libre:hover { background: #eef1f6; }
+.celda-nota {
+  font-style: italic;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #5b4a00;
+  background: #fff8dc;
+  border: 1px dashed #d4b106;
+}
+.celda-nota:hover { background: #fff1b8; }

@@ -5,10 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Horarios – Instituto Comunitario Minca</title>
 <link rel="stylesheet" href="styles.css" />
+<!-- Librerías para exportar PDF / DOCX (solo se usan al hacer clic en Exportar) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.min.js"></script>
+<!-- Generar Excel (.xlsx) -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<!-- Supabase (base de datos + autenticación, capa gratuita) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 </head>
@@ -75,10 +78,7 @@
         <div class="barra-edicion">
           <button class="btn-export" onclick="abrirExport('edicion')">⬇ Exportar</button>
           <button id="btn-deshacer-ajuste" class="btn-export btn-secundario" style="display:none;" onclick="deshacerAjuste()">↩ Deshacer ajuste</button>
-          <div class="config-texto-vacio">
-            <label for="input-texto-vacio">Texto espacios vacíos (exportación):</label>
-            <input type="text" id="input-texto-vacio" value="PLAN DE AULA" placeholder="Ej: PLAN DE AULA" />
-          </div>
+          <button id="btn-nota-todos-barra" class="btn-export btn-secundario" style="display:none;" onclick="abrirModalNotaVacio()" title="Escribir un mensaje en los bloques sin asignar para que no salgan vacíos al exportar">✎ Mensaje en sin asignar</button>
         </div>
         <div class="edicion-cuerpo">
           <div class="col-docentes">
@@ -93,6 +93,7 @@
 
 </main>
 
+<!-- Modal de exportación -->
 <div id="modal-export" class="modal">
   <div class="modal-caja">
     <h3>Exportar horario</h3>
@@ -110,6 +111,7 @@
   </div>
 </div>
 
+<!-- Modal de horario individual del docente (uso interno / edición) -->
 <div id="modal-docente" class="modal">
   <div class="modal-caja modal-grande">
     <div id="modal-docente-contenido"></div>
@@ -117,6 +119,7 @@
   </div>
 </div>
 
+<!-- Modal de horario individual con formato oficial (Sede A/B/C) -->
 <div id="modal-oficial" class="modal">
   <div class="modal-caja modal-grande">
     <div id="modal-oficial-contenido"></div>
@@ -124,10 +127,11 @@
   </div>
 </div>
 
+<!-- Modal de inicio de sesión -->
 <div id="modal-login" class="modal">
   <div class="modal-caja">
     <h3>Iniciar sesión</h3>
-    <p class="ayuda" style="margin-top:-6px;">Solo el personal con credenciales puede hacer modificaciones.</p>
+    <p class="ayuda" style="margin-top:-6px;">Solo el personal con credenciales puede hacer modificaciones. Ver el horario no requiere iniciar sesión.</p>
     <div class="form-login">
       <label>Correo
         <input type="email" id="login-email" placeholder="nombre@colegio.edu.co" />
@@ -144,12 +148,13 @@
   </div>
 </div>
 
+<!-- Modal de guardar / cargar horarios en la base de datos -->
 <div id="modal-guardar-cargar" class="modal">
   <div class="modal-caja modal-grande">
     <h3>Horarios guardados</h3>
     <div class="form-guardar">
-      <input type="text" id="input-nombre-guardar" placeholder="Ej: Horario 2026, Borrador" />
-      <button onclick="guardarHorarioBD()">💾 Guardar horario actual</button>
+      <input type="text" id="input-nombre-guardar" placeholder="Ej: Horario 2026, Borrador, Horario 2027" />
+      <button onclick="guardarHorarioBD()">💾 Guardar horario actual con este nombre</button>
     </div>
     <p id="guardar-mensaje" class="ayuda"></p>
     <h4>Cargar un horario guardado</h4>
@@ -158,6 +163,7 @@
   </div>
 </div>
 
+<!-- Modal para agregar una persona (docente o profesional) solo para el día -->
 <div id="modal-nuevo-docente" class="modal">
   <div class="modal-caja">
     <h3>Agregar docente o profesional</h3>
@@ -172,6 +178,31 @@
       <button onclick="confirmarNuevoDocente()">Agregar</button>
     </div>
     <button class="cerrar" onclick="cerrarModalNuevoDocente()">Cancelar</button>
+  </div>
+</div>
+
+<!-- Modal: mensaje para bloques "sin asignar" -->
+<div id="modal-nota-vacio" class="modal">
+  <div class="modal-caja">
+    <h3>Mensaje en bloque sin asignar</h3>
+    <p class="ayuda" id="nota-vacio-contexto" style="margin-top:-6px;"></p>
+    <div class="form-login">
+      <label>Texto que aparecerá en el horario y al exportar
+        <input type="text" id="input-nota-vacio" maxlength="40" list="sugerencias-nota" placeholder="Ej: Actividad" onkeydown="if(event.key==='Enter'){guardarNotaVacio(false)}" />
+        <datalist id="sugerencias-nota">
+          <option value="Actividad"></option>
+          <option value="Sin clase"></option>
+          <option value="Salida pedagógica"></option>
+          <option value="Acto cívico"></option>
+          <option value="Reunión"></option>
+        </datalist>
+      </label>
+    </div>
+    <div class="modal-botones">
+      <button id="btn-nota-guardar" onclick="guardarNotaVacio(false)">Guardar en esta celda</button>
+      <button id="btn-nota-todos" onclick="guardarNotaVacio(true)">Poner en todos los sin asignar</button>
+    </div>
+    <button class="cerrar" onclick="cerrarModalNotaVacio()">Cancelar</button>
   </div>
 </div>
 
