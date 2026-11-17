@@ -19,12 +19,7 @@ const SEDES = ["A", "B", "C"];
 const SEDE_LABEL = { A: "Sede A", B: "Sede B", C: "Sede C" };
 
 /* ------------------------------------------------------------
-   DOCENTES – datos reales importados de horarios.xlsx
-   nombre, dir (grupo del que es director, o "" si no aplica),
-   horario: por día, arreglo de 6 celdas con el código de grupo
-   ("9-3B"), "A.P." (Atención a Padres) o null (celda vacía).
-   Los docentes de contrajornada traen además horarioTarde con
-   la misma estructura (jornada de la tarde, Media Técnica).
+   DOCENTES – OBJETO CON INFORMACIÓN DE CADA UNO
    ------------------------------------------------------------ */
 
 const DOCENTES_RAW = [
