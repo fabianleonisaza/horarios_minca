@@ -1,8 +1,3 @@
-/* ============================================================
-   HORARIOS – Instituto Comunitario Minca
-   Modelo de datos + lógica de la aplicación
-   Datos importados y verificados desde horarios.xlsx (tabla corregida)
-   ============================================================ */
 
 const DIAS = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes"];
 const HORAS = [1, 2, 3, 4, 5, 6];
